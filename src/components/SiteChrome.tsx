@@ -1,7 +1,52 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import type { MouseEvent } from 'react'
 import { profile, experience } from '../data/profile'
+import { useTheme } from '../lib/useTheme'
+
+const SunIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+  </svg>
+)
+
+const MoonIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+  </svg>
+)
+
+const SECTIONS = [
+  { id: 'work', label: 'Work' },
+  { id: 'track', label: 'Experience' },
+  { id: 'contact', label: 'Contact' },
+]
 
 export function TopBar() {
+  const { theme, toggle } = useTheme()
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  /**
+   * These are in-page anchors, but the app uses HashRouter — so the URL hash
+   * *is* the route. Letting href="#work" through would navigate to a route
+   * called /work, which does not exist, and land on the 404 page. Scroll by
+   * hand instead and leave the hash alone.
+   */
+  const jump = (id: string) => (e: MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    const scroll = () =>
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+    if (location.pathname !== '/') {
+      navigate('/')
+      // Let the route render before looking for the section.
+      window.setTimeout(scroll, 80)
+    } else {
+      scroll()
+    }
+  }
+
   return (
     <header className="topbar">
       <div className="wrap topbar__in">
@@ -10,11 +55,21 @@ export function TopBar() {
           {profile.name}
         </Link>
         <nav className="navlinks">
-          <a href="#work">Work</a>
-          <a href="#track">Experience</a>
-          <a href="#contact">Contact</a>
+          {SECTIONS.map((s) => (
+            <a key={s.id} href={`#${s.id}`} onClick={jump(s.id)}>
+              {s.label}
+            </a>
+          ))}
         </nav>
         <span className="topbar__spacer" />
+        <button
+          className="themebtn"
+          onClick={toggle}
+          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+        >
+          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+        </button>
         <Link className="ghost-link" to="/admin">
           Admin
         </Link>
