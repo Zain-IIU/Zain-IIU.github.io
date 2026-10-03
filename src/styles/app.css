@@ -233,6 +233,23 @@ button {
 }
 .ghost-link:hover { color: var(--ink); border-color: var(--ink); }
 
+.themebtn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-2);
+  transition: color 0.18s, border-color 0.18s;
+}
+.themebtn:hover { color: var(--accent); border-color: var(--accent); }
+.themebtn svg { width: 15px; height: 15px; display: block; }
+
+/* The top bar is sticky, so scrolled-to sections need to clear it. */
+#work, #track, #contact { scroll-margin-top: 76px; }
+
 /* ===========================================================================
    Hero
    =========================================================================== */
