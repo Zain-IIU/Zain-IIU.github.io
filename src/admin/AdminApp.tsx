@@ -7,7 +7,12 @@ import { slugify } from '../lib/types'
 import type { Game } from '../lib/types'
 import Login from './Login'
 import GameEditor from './GameEditor'
+import ProfileEditor from './ProfileEditor'
+import ExperienceEditor from './ExperienceEditor'
+import { useProfile } from '../lib/useProfile'
 import '../styles/admin.css'
+
+type Section = 'games' | 'profile' | 'experience'
 
 function SetupNotice() {
   return (
@@ -143,8 +148,10 @@ export default function AdminApp() {
 
 function Dashboard({ email }: { email: string }) {
   const { games, loading, error, refresh, setGames } = useAllGames()
+  const prof = useProfile()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
+  const [section, setSection] = useState<Section>('games')
 
   const selected = useMemo(
     () => games.find((g) => g.id === selectedId) ?? null,
@@ -230,10 +237,11 @@ function Dashboard({ email }: { email: string }) {
     <div className="wrap">
       <section className="admin-intro">
         <p className="eyebrow">Behind the login</p>
-        <h2>One screen to run the shelf</h2>
+        <h2>One screen to run the site</h2>
         <p>
           Reorder with the arrows, flip the switch to show or hide a game, drop in a new capture and
-          the poster is generated for you. Changes are live on the site as soon as they save.
+          the poster is generated for you. Your photo, CV and track record live here too. Changes
+          are on the site as soon as they save.
         </p>
       </section>
 
@@ -253,10 +261,27 @@ function Dashboard({ email }: { email: string }) {
               <small>{email}</small>
             </div>
           </div>
-          <a href="#games" className="on">
+          <button
+            className={`sidelink${section === 'games' ? ' on' : ''}`}
+            onClick={() => setSection('games')}
+          >
             <span className="dotk" />
             Games
-          </a>
+          </button>
+          <button
+            className={`sidelink${section === 'profile' ? ' on' : ''}`}
+            onClick={() => setSection('profile')}
+          >
+            <span className="dotk" />
+            Profile &amp; CV
+          </button>
+          <button
+            className={`sidelink${section === 'experience' ? ' on' : ''}`}
+            onClick={() => setSection('experience')}
+          >
+            <span className="dotk" />
+            Track record
+          </button>
           <Link to="/">
             <span className="dotk" />
             View site
@@ -269,32 +294,50 @@ function Dashboard({ email }: { email: string }) {
         </aside>
 
         <div className="pane" id="games">
-          <div className="pane__top">
-            <h3>Games</h3>
-            <span className="count">
-              {loading ? 'loading…' : `${games.length} games · ${liveCount} live`}
-            </span>
-            <button className="btnp btnp--push" onClick={createGame} disabled={creating}>
-              + New game
-            </button>
-          </div>
+          {section === 'games' && (
+            <>
+              <div className="pane__top">
+                <h3>Games</h3>
+                <span className="count">
+                  {loading ? 'loading…' : `${games.length} games · ${liveCount} live`}
+                </span>
+                <button className="btnp btnp--push" onClick={createGame} disabled={creating}>
+                  + New game
+                </button>
+              </div>
 
-          <GamesTable
-            games={games}
-            selectedId={selectedId}
-            onSelect={(g) => setSelectedId(g.id)}
-            onReorder={reorder}
-            onTogglePublished={togglePublished}
-          />
+              <GamesTable
+                games={games}
+                selectedId={selectedId}
+                onSelect={(g) => setSelectedId(g.id)}
+                onReorder={reorder}
+                onTogglePublished={togglePublished}
+              />
 
-          <GameEditor
-            game={selected}
-            onSaved={refresh}
-            onDeleted={() => {
-              setSelectedId(null)
-              void refresh()
-            }}
-          />
+              <GameEditor
+                game={selected}
+                onSaved={refresh}
+                onDeleted={() => {
+                  setSelectedId(null)
+                  void refresh()
+                }}
+              />
+            </>
+          )}
+
+          {section === 'profile' && (
+            <>
+              <div className="pane__top">
+                <h3>Profile &amp; CV</h3>
+                <span className="count">shown in the hero</span>
+              </div>
+              <ProfileEditor profile={prof.profile} onSaved={prof.refresh} />
+            </>
+          )}
+
+          {section === 'experience' && (
+            <ExperienceEditor rows={prof.experience} onChanged={prof.refresh} />
+          )}
         </div>
       </div>
     </div>

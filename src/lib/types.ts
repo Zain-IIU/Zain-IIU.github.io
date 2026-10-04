@@ -50,6 +50,36 @@ export function emptyGame(sortOrder: number): GameDraft {
   }
 }
 
+/** The single `profile` row. Mirrors supabase/002_profile_and_experience.sql. */
+export interface Profile {
+  id: string
+  name: string
+  role: string | null
+  location: string | null
+  engine: string | null
+  /** Text between *asterisks* renders muted. */
+  headline: string | null
+  intro: string | null
+  email: string | null
+  github_url: string | null
+  linkedin_url: string | null
+  photo_url: string | null
+  cv_url: string | null
+  updated_at: string
+}
+
+/** One role in the track record. */
+export interface ExperienceRow {
+  id: string
+  when_label: string
+  title: string
+  where_label: string | null
+  note: string | null
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
 /** "Peak Climber" -> "peak-climber" */
 export function slugify(input: string): string {
   return input

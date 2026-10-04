@@ -88,6 +88,18 @@ export async function uploadCapture(slug: string, file: File): Promise<UploadRes
   return { videoUrl, posterUrl, bytes: file.size }
 }
 
+/**
+ * Upload any single file (photo, CV) under a stable prefix. The timestamp in
+ * the name means a replacement never collides with a cached copy of the old
+ * one — browsers and CDNs key on the URL, so reusing the name would serve the
+ * stale file for as long as the cache lives.
+ */
+export async function uploadAsset(prefix: string, file: File): Promise<string> {
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'bin'
+  const path = `${prefix}/${Date.now()}.${ext}`
+  return uploadToMedia(path, file, file.type || 'application/octet-stream')
+}
+
 export function prettyBytes(n: number): string {
   if (n < 1024) return `${n} B`
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`

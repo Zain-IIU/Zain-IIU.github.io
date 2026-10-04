@@ -233,6 +233,23 @@ button {
 }
 .ghost-link:hover { color: var(--ink); border-color: var(--ink); }
 
+.themebtn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-2);
+  transition: color 0.18s, border-color 0.18s;
+}
+.themebtn:hover { color: var(--accent); border-color: var(--accent); }
+.themebtn svg { width: 15px; height: 15px; display: block; }
+
+/* The top bar is sticky, so scrolled-to sections need to clear it. */
+#work, #track, #contact { scroll-margin-top: 76px; }
+
 /* ===========================================================================
    Hero
    =========================================================================== */
@@ -257,6 +274,51 @@ button {
   color: var(--ink-2);
   font-size: 16.5px;
   margin: 22px 0 0;
+}
+
+/* Intro text on the left, portrait panel on the right. */
+.hero__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 260px);
+  gap: clamp(28px, 5vw, 64px);
+  align-items: start;
+  margin-top: 22px;
+}
+
+.hero__photo {
+  margin: 0;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  box-shadow: var(--lift);
+}
+.hero__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.hero__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin-top: 26px;
+}
+.hero__links a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--line-strong);
+  padding-bottom: 3px;
+  transition: color 0.18s, border-color 0.18s;
+}
+.hero__links a:hover { color: var(--accent); border-color: var(--accent); }
+
+@media (max-width: 760px) {
+  .hero__body { grid-template-columns: 1fr; gap: 32px; }
+  .hero__photo { max-width: 220px; }
 }
 
 .specs {
