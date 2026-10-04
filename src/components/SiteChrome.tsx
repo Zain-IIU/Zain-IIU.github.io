@@ -163,7 +163,22 @@ export function Experience({ rows }: { rows: ExperienceRow[] }) {
             <div className="role__when">{role.when_label}</div>
             <div>
               <div className="role__what">{role.title}</div>
-              {role.where_label && <div className="role__where">{role.where_label}</div>}
+              {role.where_label && (
+                <div className="role__where">
+                  {role.where_url ? (
+                    <a
+                      className="role__link"
+                      href={role.where_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {role.where_label}
+                    </a>
+                  ) : (
+                    role.where_label
+                  )}
+                </div>
+              )}
             </div>
             <div className="role__note">{role.note}</div>
           </div>

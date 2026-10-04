@@ -74,6 +74,8 @@ export interface ExperienceRow {
   when_label: string
   title: string
   where_label: string | null
+  /** Optional company site or LinkedIn page. Null renders the name as plain text. */
+  where_url: string | null
   note: string | null
   sort_order: number
   created_at: string
