@@ -33,6 +33,7 @@ export default function ExperienceEditor({
         when_label: r.when_label.trim() || '—',
         title: r.title.trim() || 'Untitled role',
         where_label: r.where_label?.trim() || null,
+        where_url: r.where_url?.trim() || null,
         note: r.note?.trim() || null,
         sort_order: (i + 1) * 10,
       })),
@@ -52,6 +53,7 @@ export default function ExperienceEditor({
       when_label: 'Year → year',
       title: 'New role',
       where_label: 'Studio',
+      where_url: null,
       note: '',
       sort_order: maxOrder + 10,
     })
@@ -141,6 +143,17 @@ export default function ExperienceEditor({
                   id={`x-where-${r.id}`}
                   value={r.where_label ?? ''}
                   onChange={(e) => edit(r.id, 'where_label', e.target.value)}
+                />
+              </div>
+              <div className="f wide">
+                <label htmlFor={`x-url-${r.id}`}>
+                  Company link — site or LinkedIn. Empty leaves the name as plain text
+                </label>
+                <input
+                  id={`x-url-${r.id}`}
+                  value={r.where_url ?? ''}
+                  onChange={(e) => edit(r.id, 'where_url', e.target.value)}
+                  placeholder="https://www.linkedin.com/company/…"
                 />
               </div>
               <div className="f wide">

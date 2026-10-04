@@ -36,6 +36,7 @@ function fallbackRows(): ExperienceRow[] {
     when_label: r.when,
     title: r.title,
     where_label: r.where,
+    where_url: null,
     note: r.note,
     sort_order: (i + 1) * 10,
     created_at: '',
