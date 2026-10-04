@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import type { MouseEvent } from 'react'
-import { profile, experience } from '../data/profile'
+import type { MouseEvent, ReactNode } from 'react'
+import { profile as staticProfile } from '../data/profile'
 import { useTheme } from '../lib/useTheme'
+import type { Profile, ExperienceRow } from '../lib/types'
 
 const SunIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
@@ -22,7 +23,7 @@ const SECTIONS = [
   { id: 'contact', label: 'Contact' },
 ]
 
-export function TopBar() {
+export function TopBar({ name }: { name?: string }) {
   const { theme, toggle } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
@@ -40,7 +41,6 @@ export function TopBar() {
 
     if (location.pathname !== '/') {
       navigate('/')
-      // Let the route render before looking for the section.
       window.setTimeout(scroll, 80)
     } else {
       scroll()
@@ -52,7 +52,7 @@ export function TopBar() {
       <div className="wrap topbar__in">
         <Link className="mark" to="/">
           <i />
-          {profile.name}
+          {name ?? staticProfile.name}
         </Link>
         <nav className="navlinks">
           {SECTIONS.map((s) => (
@@ -78,18 +78,68 @@ export function TopBar() {
   )
 }
 
-export function Hero() {
+/**
+ * The headline is one editable string, but it still wants emphasis. Text
+ * wrapped in *asterisks* renders in the muted colour — the convention keeps
+ * the admin form a plain text input instead of a rich-text editor.
+ */
+function renderHeadline(text: string): ReactNode[] {
+  return text.split(/(\*[^*]+\*)/g).map((part, i) =>
+    part.length > 2 && part.startsWith('*') && part.endsWith('*') ? (
+      <em key={i}>{part.slice(1, -1)}</em>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
+  )
+}
+
+export function Hero({ data }: { data: Profile | null }) {
+  const p = data
+  const eyebrow = [p?.role, p?.engine, p?.location].filter(Boolean).join(' · ')
+  const email = p?.email?.trim()
+  const github = p?.github_url?.trim()
+  const linkedin = p?.linkedin_url?.trim()
+  const cv = p?.cv_url?.trim()
+
   return (
     <section className="wrap hero">
-      <p className="eyebrow">
-        {profile.role} · {profile.engine} · {profile.location}
-      </p>
-      <h1>
-        I build the <em>feel</em> of mobile games.
-      </h1>
-      <p className="hero__intro">{profile.intro}</p>
+      {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+      <h1>{renderHeadline(p?.headline || 'I build the *feel* of mobile games.')}</h1>
+
+      <div className="hero__body">
+        <div className="hero__text">
+          {p?.intro && <p className="hero__intro">{p.intro}</p>}
+
+          <div className="hero__links">
+            {email && <a href={`mailto:${email}`}>Email</a>}
+            {github && (
+              <a href={github} target="_blank" rel="noopener noreferrer">
+                GitHub
+              </a>
+            )}
+            {linkedin && (
+              <a href={linkedin} target="_blank" rel="noopener noreferrer">
+                LinkedIn
+              </a>
+            )}
+            {cv && (
+              <a href={cv} target="_blank" rel="noopener noreferrer">
+                Download CV
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* No photo uploaded yet: drop the panel rather than show an empty box. */}
+        {p?.photo_url && (
+          <figure className="hero__photo">
+            <img src={p.photo_url} alt={p.name} loading="eager" decoding="async" />
+          </figure>
+        )}
+      </div>
+
       <div className="specs">
-        {profile.stats.map((s) => (
+        {staticProfile.stats.map((s) => (
           <div className="spec" key={s.label}>
             <b>{s.value}</b>
             <span>{s.label}</span>
@@ -100,18 +150,20 @@ export function Hero() {
   )
 }
 
-export function Experience() {
+export function Experience({ rows }: { rows: ExperienceRow[] }) {
+  if (rows.length === 0) return null
+
   return (
     <section className="wrap track" id="track">
       <p className="eyebrow">Track record</p>
       <h2>Where the builds came from</h2>
       <div className="roles">
-        {experience.map((role) => (
-          <div className="role" key={role.when}>
-            <div className="role__when">{role.when}</div>
+        {rows.map((role) => (
+          <div className="role" key={role.id}>
+            <div className="role__when">{role.when_label}</div>
             <div>
               <div className="role__what">{role.title}</div>
-              <div className="role__where">{role.where}</div>
+              {role.where_label && <div className="role__where">{role.where_label}</div>}
             </div>
             <div className="role__note">{role.note}</div>
           </div>
@@ -121,7 +173,9 @@ export function Experience() {
   )
 }
 
-export function Footer() {
+export function Footer({ data }: { data: Profile | null }) {
+  const email = data?.email?.trim()
+
   return (
     <div className="wrap">
       <footer className="site-footer" id="contact">
@@ -134,16 +188,11 @@ export function Footer() {
               about the loop.
             </h2>
           </div>
-          <div className="links">
-            <a href={profile.links.email}>Email</a>
-            <a href={profile.links.github} target="_blank" rel="noopener noreferrer">
-              GitHub
-            </a>
-            <a href={profile.links.linkedin} target="_blank" rel="noopener noreferrer">
-              LinkedIn
-            </a>
-            <a href={profile.links.cv}>Download CV</a>
-          </div>
+          {email && (
+            <div className="links">
+              <a href={`mailto:${email}`}>{email}</a>
+            </div>
+          )}
         </div>
       </footer>
     </div>

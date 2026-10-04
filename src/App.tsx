@@ -3,6 +3,8 @@ import { TopBar, Hero, Experience, Footer } from './components/SiteChrome'
 import Shelf from './components/Shelf'
 import AdminApp from './admin/AdminApp'
 import { usePublishedGames } from './lib/useGames'
+import { useProfile } from './lib/useProfile'
+import type { ProfileState } from './lib/useProfile'
 
 function SetupNotice() {
   return (
@@ -20,12 +22,12 @@ function SetupNotice() {
   )
 }
 
-function Site() {
+function Site({ prof }: { prof: ProfileState }) {
   const { games, loading, error } = usePublishedGames()
 
   return (
     <>
-      <Hero />
+      <Hero data={prof.profile} />
       {error === 'not-configured' && <SetupNotice />}
       {error && error !== 'not-configured' && (
         <div className="wrap">
@@ -36,8 +38,8 @@ function Site() {
         </div>
       )}
       <Shelf games={games} loading={loading} />
-      <Experience />
-      <Footer />
+      <Experience rows={prof.experience} />
+      <Footer data={prof.profile} />
     </>
   )
 }
@@ -55,12 +57,15 @@ function NotFound() {
 }
 
 export default function App() {
+  // Fetched once here so the top bar and the page share a single query.
+  const prof = useProfile()
+
   return (
     <>
-      <TopBar />
+      <TopBar name={prof.profile?.name} />
       <main>
         <Routes>
-          <Route path="/" element={<Site />} />
+          <Route path="/" element={<Site prof={prof} />} />
           <Route path="/admin" element={<AdminApp />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
