@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { MouseEvent, ReactNode } from 'react'
-import { profile as staticProfile } from '../data/profile'
+import { profile as staticProfile, capabilities } from '../data/profile'
 import { useTheme } from '../lib/useTheme'
 import type { Profile, ExperienceRow } from '../lib/types'
 
@@ -17,16 +17,57 @@ const MoonIcon = () => (
   </svg>
 )
 
+const ArrowIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+)
+
+const DownloadIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+    <path d="M12 4v12M7 12l5 5 5-5M5 20h14" />
+  </svg>
+)
+
+const GithubIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.3.2 2.3.1 2.6.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .3.3.7 1 .7 2v2.9c0 .3.2.6.7.5A10 10 0 0 0 12 2z" />
+  </svg>
+)
+
+const LinkedinIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.75-2.05 4 0 4.75 2.6 4.75 6V21H20.5v-5.6c0-1.33-.03-3.05-1.9-3.05-1.9 0-2.2 1.46-2.2 2.96V21H12.6z" />
+  </svg>
+)
+
+const MailIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <path d="M4 5h16v14H4z" />
+    <path d="M4 7l8 6 8-6" />
+  </svg>
+)
+
 const SECTIONS = [
   { id: 'work', label: 'Work' },
-  { id: 'track', label: 'Experience' },
+  { id: 'track', label: 'Journey' },
   { id: 'contact', label: 'Contact' },
 ]
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('')
+}
 
 export function TopBar({ name }: { name?: string }) {
   const { theme, toggle } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
+  const who = name ?? staticProfile.name
 
   /**
    * These are in-page anchors, but the app uses HashRouter — so the URL hash
@@ -51,8 +92,11 @@ export function TopBar({ name }: { name?: string }) {
     <header className="topbar">
       <div className="wrap topbar__in">
         <Link className="mark" to="/">
-          <i />
-          {name ?? staticProfile.name}
+          <i>{initials(who)}</i>
+          <span className="mark__txt">
+            <b>{who}</b>
+            <span>{staticProfile.role}</span>
+          </span>
         </Link>
         <nav className="navlinks">
           {SECTIONS.map((s) => (
@@ -70,23 +114,25 @@ export function TopBar({ name }: { name?: string }) {
         >
           {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
         </button>
-        <Link className="ghost-link" to="/admin">
-          Admin
-        </Link>
+        <a className="ghost-link" href="#contact" onClick={jump('contact')}>
+          Let&rsquo;s talk
+        </a>
       </div>
     </header>
   )
 }
 
 /**
- * The headline is one editable string, but it still wants emphasis. Text
- * wrapped in *asterisks* renders in the muted colour — the convention keeps
- * the admin form a plain text input instead of a rich-text editor.
+ * The headline is one editable string that still wants emphasis. Text wrapped
+ * in *asterisks* renders muted, which keeps the admin field a plain text input
+ * instead of a rich-text editor.
  */
 function renderHeadline(text: string): ReactNode[] {
   return text.split(/(\*[^*]+\*)/g).map((part, i) =>
     part.length > 2 && part.startsWith('*') && part.endsWith('*') ? (
-      <em key={i}>{part.slice(1, -1)}</em>
+      <em key={i} style={{ fontStyle: 'normal', color: 'var(--muted)' }}>
+        {part.slice(1, -1)}
+      </em>
     ) : (
       <span key={i}>{part}</span>
     ),
@@ -95,36 +141,55 @@ function renderHeadline(text: string): ReactNode[] {
 
 export function Hero({ data }: { data: Profile | null }) {
   const p = data
-  const eyebrow = [p?.role, p?.engine, p?.location].filter(Boolean).join(' · ')
+  const eyebrow = [p?.engine, 'C#', p?.location].filter(Boolean).join(' · ')
   const email = p?.email?.trim()
   const github = p?.github_url?.trim()
   const linkedin = p?.linkedin_url?.trim()
   const cv = p?.cv_url?.trim()
 
   return (
-    <section className="wrap hero">
-      {eyebrow && <p className="eyebrow">{eyebrow}</p>}
-      <h1>{renderHeadline(p?.headline || 'I build the *feel* of mobile games.')}</h1>
-
-      <div className="hero__body">
-        <div className="hero__text">
+    <section className="wrap">
+      <div className="hero">
+        <div>
+          {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+          <h1>{renderHeadline(p?.headline || 'I build the *feel* of mobile games.')}</h1>
+          {p?.role && <p className="hero__role">{p.role}</p>}
           {p?.intro && <p className="hero__intro">{p.intro}</p>}
 
+          <div className="btnrow">
+            <a className="btn-o" href="#work" onClick={(e) => { e.preventDefault(); document.getElementById('work')?.scrollIntoView({ behavior: 'smooth' }) }}>
+              View the shelf <ArrowIcon />
+            </a>
+            {cv && (
+              <a className="btn-g" href={cv} target="_blank" rel="noopener noreferrer">
+                Download CV <DownloadIcon />
+              </a>
+            )}
+          </div>
+
           <div className="hero__links">
-            {email && <a href={`mailto:${email}`}>Email</a>}
             {github && (
               <a href={github} target="_blank" rel="noopener noreferrer">
+                <GithubIcon />
                 GitHub
               </a>
             )}
             {linkedin && (
               <a href={linkedin} target="_blank" rel="noopener noreferrer">
+                <LinkedinIcon />
                 LinkedIn
               </a>
             )}
             {cv && (
               <a href={cv} target="_blank" rel="noopener noreferrer">
-                Download CV
+                <DownloadIcon />
+                Resume
+              </a>
+            )}
+            {email && (
+              <a href={`mailto:${email}`}>
+                <MailIcon />
+                Email
               </a>
             )}
           </div>
@@ -155,34 +220,53 @@ export function Experience({ rows }: { rows: ExperienceRow[] }) {
 
   return (
     <section className="wrap track" id="track">
-      <p className="eyebrow">Track record</p>
-      <h2>Where the builds came from</h2>
-      <div className="roles">
-        {rows.map((role) => (
-          <div className="role" key={role.id}>
-            <div className="role__when">{role.when_label}</div>
-            <div>
-              <div className="role__what">{role.title}</div>
-              {role.where_label && (
-                <div className="role__where">
-                  {role.where_url ? (
-                    <a
-                      className="role__link"
-                      href={role.where_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {role.where_label}
-                    </a>
-                  ) : (
-                    role.where_label
-                  )}
-                </div>
-              )}
+      <div className="shead">
+        <div>
+          <p className="eyebrow">Experience</p>
+          <h2>My Journey</h2>
+        </div>
+        <p>Five years from weekly prototypes to shipped titles with live ops, across four studios.</p>
+      </div>
+
+      <div className="journey">
+        <div className="roles">
+          {rows.map((role) => (
+            <div className="role" key={role.id}>
+              <div className="role__when">{role.when_label}</div>
+              <div className="role__dot">
+                <i />
+              </div>
+              <div>
+                <div className="role__what">{role.title}</div>
+                {role.where_label && (
+                  <div className="role__where">
+                    {role.where_url ? (
+                      <a className="role__link" href={role.where_url} target="_blank" rel="noopener noreferrer">
+                        {role.where_label}
+                      </a>
+                    ) : (
+                      role.where_label
+                    )}
+                  </div>
+                )}
+                {role.note && <p className="role__note">{role.note}</p>}
+              </div>
             </div>
-            <div className="role__note">{role.note}</div>
+          ))}
+        </div>
+
+        <div>
+          <p className="eyebrow">What I do</p>
+          <div className="caps">
+            {capabilities.map((c, i) => (
+              <div className="cap" key={c.title}>
+                <b>{String(i + 1).padStart(2, '0')}</b>
+                <h4>{c.title}</h4>
+                <p>{c.body}</p>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </section>
   )
@@ -190,26 +274,34 @@ export function Experience({ rows }: { rows: ExperienceRow[] }) {
 
 export function Footer({ data }: { data: Profile | null }) {
   const email = data?.email?.trim()
+  const where = data?.location?.trim()
 
   return (
-    <div className="wrap">
-      <footer className="site-footer" id="contact">
-        <div className="foot">
-          <div>
-            <p className="eyebrow">Open to gameplay &amp; tools roles</p>
-            <h2>
-              Let&rsquo;s talk
-              <br />
-              about the loop.
-            </h2>
-          </div>
+    <footer className="site-footer" id="contact">
+      <div className="wrap foot">
+        <div>
+          <p className="eyebrow">Open to gameplay &amp; tools roles</p>
+          <h2>
+            Let&rsquo;s talk
+            <br />
+            about the loop.
+          </h2>
           {email && (
-            <div className="links">
-              <a href={`mailto:${email}`}>{email}</a>
-            </div>
+            <a className="mail" href={`mailto:${email}`}>
+              {email}
+            </a>
           )}
         </div>
-      </footer>
-    </div>
+        <div className="foot__meta">
+          {where && (
+            <>
+              {where}
+              <br />
+            </>
+          )}
+          Open to work
+        </div>
+      </div>
+    </footer>
   )
 }
