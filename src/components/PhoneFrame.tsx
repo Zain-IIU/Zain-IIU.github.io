@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
 
 interface Props {
   /** MP4/WebM capture. Null renders the poster alone. */
@@ -7,13 +6,6 @@ interface Props {
   /** First frame. Shown before anything downloads, and if there is no video. */
   poster: string | null
   alt: string
-  /**
-   * CSS width of the device — everything else scales from it, so it must be an
-   * absolute length (px/rem), never a percentage: the corner radii and button
-   * offsets are calc()s of this value. Omit it to let the stylesheet's
-   * breakpoints set the width instead, which is what the shelf grid does.
-   */
-  width?: string
   /** Hover plays on pointer devices; tap plays on touch. */
   interactive?: boolean
   className?: string
@@ -21,7 +13,7 @@ interface Props {
 
 /**
  * Only one clip plays at a time. Starting one stops whatever was running, so a
- * visitor tapping down the shelf never leaves a trail of videos playing behind
+ * visitor moving down the shelf never leaves a trail of videos playing behind
  * them, burning battery and bandwidth off-screen.
  */
 let stopCurrent: (() => void) | null = null
@@ -31,12 +23,16 @@ const prefersReducedMotion = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /**
- * An iPhone 17 Pro Max shell around a looping capture.
+ * An iPhone shell around a looping capture.
+ *
+ * Every measurement is a percentage of the frame's own box, so the device
+ * scales with whatever column it lands in — the shelf grid, the featured
+ * block, the admin editor — with no size variable to keep in sync.
  *
  * Playback rules that matter:
  *  - muted + playsInline, or mobile browsers refuse to play inline at all
  *    (iOS Safari otherwise hijacks the video into fullscreen).
- *  - preload="none", so twelve videos do not start downloading on page load.
+ *  - preload="none", so a dozen videos do not start downloading on page load.
  *  - play() returns a promise that rejects when the browser declines. Caught,
  *    or every card throws in the console.
  *
@@ -45,14 +41,7 @@ const prefersReducedMotion = () =>
  * Reduce Motion all block unprompted playback, and all allow this. It also
  * means a visitor only downloads the clips they actually asked for.
  */
-export default function PhoneFrame({
-  video,
-  poster,
-  alt,
-  width,
-  interactive = true,
-  className = '',
-}: Props) {
+export default function PhoneFrame({ video, poster, alt, interactive = true, className = '' }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
 
@@ -120,7 +109,6 @@ export default function PhoneFrame({
   }, [])
 
   const canHover = interactive && video && !isTouch && !prefersReducedMotion()
-
   const hoverProps = canHover
     ? { onMouseEnter: start, onMouseLeave: stop, onFocus: start, onBlur: stop }
     : {}
@@ -129,15 +117,8 @@ export default function PhoneFrame({
     <div
       ref={rootRef}
       className={`phone ${playing ? 'is-playing' : ''} ${className}`}
-      style={width ? ({ '--w': width } as CSSProperties) : undefined}
       {...hoverProps}
     >
-      <span className="sidebtn sb-action" />
-      <span className="sidebtn sb-up" />
-      <span className="sidebtn sb-down" />
-      <span className="sidebtn sb-power" />
-      <span className="sidebtn sb-cam" />
-
       <div className="phone__body">
         <div className="phone__inner">
           {poster ? (

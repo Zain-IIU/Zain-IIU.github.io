@@ -33,6 +33,18 @@ export const profile = {
   },
 }
 
+/**
+ * The "What I do" block beside the journey timeline. Four is the right number:
+ * it fills the two-by-two grid with no gap, and more than four stops reading
+ * as a summary.
+ */
+export const capabilities = [
+  { title: 'Gameplay systems', body: 'Core mechanics, game loops, player progression and merge economies.' },
+  { title: 'AI behaviour', body: 'NPC behaviour trees, pathing, and the tuning that makes them read as intentional.' },
+  { title: 'Performance', body: 'Deep profiling for memory and stable frame times on low-end Android.' },
+  { title: 'Live ops', body: 'Ad and analytics SDKs, Firebase A/B tests balanced against retention KPIs.' },
+]
+
 export interface Role {
   when: string
   title: string

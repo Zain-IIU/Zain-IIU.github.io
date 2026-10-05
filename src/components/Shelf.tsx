@@ -24,14 +24,12 @@ function matches(game: Game, filter: FilterKey): boolean {
 function GameCard({ game }: { game: Game }) {
   return (
     <article className="game">
-      {/* No width prop: .game .phone in app.css sets it per breakpoint. */}
+      <div className="game__top">
+        <span className="game__yr">{game.year ?? '—'}</span>
+        <span className="game__gen">{game.genre}</span>
+      </div>
       <PhoneFrame video={game.video_url} poster={game.poster_url} alt={`${game.title} gameplay`} />
       <h3 className="game__name">{game.title}</h3>
-      <div className="game__sub">
-        {game.genre}
-        {game.genre && game.year ? ' · ' : ''}
-        {game.year}
-      </div>
       <StoreBadges game={game} />
     </article>
   )
@@ -43,32 +41,38 @@ export default function Shelf({ games, loading }: { games: Game[]; loading: bool
   const featured = useMemo(() => games.find((g) => g.featured) ?? null, [games])
 
   const rest = useMemo(() => {
-    // The featured game gets its own block, so it only rejoins the grid once a
-    // filter is on and the featured block is hidden.
+    // The featured game has its own block, so it only rejoins the grid once a
+    // filter is on and that block is hidden.
     const pool = filter === 'all' ? games.filter((g) => !g.featured) : games
     return pool.filter((g) => matches(g, filter))
   }, [games, filter])
 
+  const showFeatured = !loading && featured && filter === 'all'
+
   return (
     <section className="wrap" id="work">
-      <div className="shelfhead">
+      <div className="shead">
         <div>
           <p className="eyebrow">Selected work</p>
-          <h2>The shelf</h2>
-          <p>Each device is a real capture from the shipped build. No trailers, no mockup screenshots.</p>
+          <h2>The Shelf</h2>
         </div>
-        <div className="filters">
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              className="chip"
-              aria-pressed={filter === f.key}
-              onClick={() => setFilter(f.key)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <p>
+          Every device is a capture from the shipped build, running at the size it was designed for.
+          No trailers, no mockup screenshots.
+        </p>
+      </div>
+
+      <div className="filters">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            className="chip"
+            aria-pressed={filter === f.key}
+            onClick={() => setFilter(f.key)}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       {loading && (
@@ -81,7 +85,7 @@ export default function Shelf({ games, loading }: { games: Game[]; loading: bool
         </div>
       )}
 
-      {!loading && featured && filter === 'all' && (
+      {showFeatured && featured && (
         <div className="featured">
           <PhoneFrame
             video={featured.video_url}
@@ -97,7 +101,7 @@ export default function Shelf({ games, loading }: { games: Game[]; loading: bool
               {featured.studio && <span>{featured.studio}</span>}
               {featured.my_role && <span>{featured.my_role}</span>}
             </div>
-            <StoreBadges game={featured} align="start" />
+            <StoreBadges game={featured} />
           </div>
         </div>
       )}
