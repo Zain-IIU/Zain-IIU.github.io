@@ -500,15 +500,26 @@ a.tag:hover { border-color: var(--accent); color: var(--accent); }
 @media (max-width: 900px) { .journey { grid-template-columns: 1fr; } }
 
 .roles { position: relative; }
-.roles::before { content: ''; position: absolute; left: 103px; top: 8px; bottom: 8px; width: 1px; background: var(--line); }
-.role { display: grid; grid-template-columns: 92px 22px minmax(0, 1fr); gap: 0 18px; padding-bottom: 30px; }
+.role { display: grid; grid-template-columns: minmax(0, 140px) 22px minmax(0, 1fr); gap: 0 18px; padding-bottom: 30px; }
+
+/* Date labels are free text, so they wrap rather than run under the rail.
+   letter-spacing stays low to fit a full range on one line where it can. */
 .role__when {
-  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em;
-  color: var(--muted); text-align: right; padding-top: 3px; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.02em;
+  color: var(--muted); text-align: right; padding-top: 3px;
+  line-height: 1.45; overflow-wrap: anywhere;
 }
+
+/* The rail lives in the dot column, not the container, so it tracks the dots
+   whatever width the date column ends up. */
 .role__dot { position: relative; }
+.role__dot::before {
+  content: ''; position: absolute; left: 7px; top: 6px; bottom: -30px;
+  width: 1px; background: var(--line);
+}
+.role:last-child .role__dot::before { display: none; }
 .role__dot i {
-  position: absolute; left: 3px; top: 6px; width: 9px; height: 9px;
+  position: absolute; left: 3px; top: 6px; width: 9px; height: 9px; z-index: 1;
   border-radius: 50%; background: var(--line-strong); border: 2px solid var(--ground);
 }
 .role:first-child .role__dot i { background: var(--accent); }
@@ -518,8 +529,7 @@ a.tag:hover { border-color: var(--accent); color: var(--accent); }
 .role__link:hover { color: var(--accent); border-color: var(--accent); }
 .role__note { margin: 10px 0 0; font-size: 14px; color: var(--ink-2); }
 
-@media (max-width: 520px) {
-  .roles::before { display: none; }
+@media (max-width: 640px) {
   .role { grid-template-columns: 1fr; gap: 4px; }
   .role__when { text-align: left; }
   .role__dot { display: none; }
