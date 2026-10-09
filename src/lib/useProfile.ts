@@ -25,6 +25,9 @@ function fallbackProfile(): Profile {
     github_url: fallback.links.github,
     linkedin_url: null,
     photo_url: null,
+    photo_zoom: 1,
+    photo_x: 50,
+    photo_y: 50,
     cv_url: null,
     updated_at: '',
   }

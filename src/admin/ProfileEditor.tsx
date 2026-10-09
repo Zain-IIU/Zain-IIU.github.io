@@ -3,6 +3,7 @@ import type { ChangeEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Profile } from '../lib/types'
 import { uploadAsset, prettyBytes } from './upload'
+import PhotoFramer from './PhotoFramer'
 
 type Status = { kind: 'idle' | 'busy' | 'ok' | 'bad'; text: string }
 
@@ -15,6 +16,16 @@ export default function ProfileEditor({
 }) {
   const [draft, setDraft] = useState<Partial<Profile>>({})
   const [status, setStatus] = useState<Status>({ kind: 'idle', text: '' })
+  /**
+   * A blob URL for the file just picked, so the framer appears the instant you
+   * choose a photo instead of after the upload round-trip. Framing is stored as
+   * numbers, not pixels, so anything set against this preview applies verbatim
+   * to the uploaded file.
+   */
+  const [picked, setPicked] = useState<string | null>(null)
+
+  // Blob URLs are held by the document until revoked, so drop ours on the way out.
+  useEffect(() => () => { if (picked) URL.revokeObjectURL(picked) }, [picked])
 
   useEffect(() => {
     if (!profile) return
@@ -29,8 +40,13 @@ export default function ProfileEditor({
       github_url: profile.github_url ?? '',
       linkedin_url: profile.linkedin_url ?? '',
       photo_url: profile.photo_url,
+      photo_zoom: profile.photo_zoom ?? 1,
+      photo_x: profile.photo_x ?? 50,
+      photo_y: profile.photo_y ?? 50,
       cv_url: profile.cv_url,
     })
+    // The stored photo is authoritative once it comes back, so drop the preview.
+    setPicked(null)
     setStatus({ kind: 'idle', text: '' })
   }, [profile])
 
@@ -52,12 +68,25 @@ export default function ProfileEditor({
       return
     }
 
+    // Show it and let him start framing straight away; the upload runs behind.
+    // Fresh framing too — the old focal point belonged to a different picture.
+    if (field === 'photo_url') {
+      setPicked(URL.createObjectURL(file))
+      setDraft((d) => ({ ...d, photo_zoom: 1, photo_x: 50, photo_y: 50 }))
+    }
+
     setStatus({ kind: 'busy', text: `Uploading ${prettyBytes(file.size)}…` })
     try {
       const url = await uploadAsset(prefix, file)
       setDraft((d) => ({ ...d, [field]: url }))
-      setStatus({ kind: 'ok', text: 'Uploaded. Save to apply.' })
+      setStatus({
+        kind: 'ok',
+        text: field === 'photo_url' ? 'Uploaded. Frame it, then save.' : 'Uploaded. Save to apply.',
+      })
     } catch (err) {
+      // Nothing was stored, so clear the preview rather than leave a picture
+      // on screen that saving would not keep.
+      if (field === 'photo_url') setPicked(null)
       setStatus({ kind: 'bad', text: err instanceof Error ? err.message : 'Upload failed.' })
     } finally {
       e.target.value = ''
@@ -89,6 +118,9 @@ export default function ProfileEditor({
         github_url: blank(draft.github_url),
         linkedin_url: blank(draft.linkedin_url),
         photo_url: blank(draft.photo_url),
+        photo_zoom: draft.photo_zoom ?? 1,
+        photo_x: draft.photo_x ?? 50,
+        photo_y: draft.photo_y ?? 50,
         cv_url: blank(draft.cv_url),
       })
       .eq('id', 'main')
@@ -111,13 +143,22 @@ export default function ProfileEditor({
               Photo
             </span>
           </label>
-          <figure className="photo-preview">
-            {draft.photo_url ? (
-              <img src={draft.photo_url} alt="Current profile" />
-            ) : (
+          {picked || draft.photo_url ? (
+            <PhotoFramer
+              url={picked ?? (draft.photo_url as string)}
+              zoom={draft.photo_zoom ?? 1}
+              x={draft.photo_x ?? 50}
+              y={draft.photo_y ?? 50}
+              disabled={busy}
+              onChange={({ zoom, x, y }) =>
+                setDraft((d) => ({ ...d, photo_zoom: zoom, photo_x: x, photo_y: y }))
+              }
+            />
+          ) : (
+            <figure className="photo-preview">
               <span>No photo yet</span>
-            )}
-          </figure>
+            </figure>
+          )}
           <input
             id="pf-photo"
             type="file"
@@ -125,11 +166,14 @@ export default function ProfileEditor({
             onChange={(e) => pick(e, 'photo', 'photo_url', 5)}
             style={{ fontSize: 11, marginTop: 10, maxWidth: '100%' }}
           />
-          {draft.photo_url && (
+          {(picked || draft.photo_url) && (
             <button
               className="btng"
               style={{ marginTop: 8, width: '100%' }}
-              onClick={() => set('photo_url', null)}
+              onClick={() => {
+                setPicked(null)
+                set('photo_url', null)
+              }}
               disabled={busy}
             >
               Remove photo

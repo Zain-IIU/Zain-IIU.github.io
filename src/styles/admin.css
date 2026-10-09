@@ -233,6 +233,48 @@
 }
 .photo-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
+/* ---- portrait framing ---- */
+.framer { display: flex; flex-direction: column; gap: 10px; }
+
+/* Same 4:5 box the hero uses, so what you set here is what ships. */
+.framer__box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  cursor: grab;
+  touch-action: none;
+}
+.framer__box.is-dragging { cursor: grabbing; }
+.framer__box:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.framer__box img { width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; }
+
+.framer__hint {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 7px 8px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.62));
+  color: #fff; text-align: center; pointer-events: none;
+  font-family: var(--font-mono); font-size: 8.5px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  transition: opacity 0.18s;
+}
+.framer__box.is-dragging .framer__hint, .framer__box:hover .framer__hint { opacity: 0; }
+
+.framer__zoom { display: flex; flex-direction: column; gap: 6px; }
+.framer__zoom span {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-mono); font-size: 9.5px;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+}
+.framer__zoom b { color: var(--ink); font-weight: 500; }
+.framer__zoom input[type='range'] { width: 100%; accent-color: var(--accent); }
+
+.framer__foot { display: flex; align-items: center; gap: 8px; }
+.framer__foot .mono { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; }
+.framer__foot .btng { margin-left: auto; padding: 6px 10px; font-size: 11.5px; }
+
 /* ---- track record ---- */
 .roles-edit { display: flex; flex-direction: column; }
 
