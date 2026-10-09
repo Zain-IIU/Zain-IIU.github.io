@@ -1,5 +1,22 @@
 export type GameStatus = 'live' | 'prototype'
 
+/**
+ * One row of the `categories` table — the shelf's filter chips.
+ *
+ * These are a managed list rather than free text on the game: a typo in a
+ * text field would quietly invent a new category, and a hard-coded chip can
+ * sit on the page matching nothing. A row means the chip exists because you
+ * made it, and games point at it by id.
+ */
+export interface Category {
+  id: string
+  label: string
+  slug: string
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
 /** One row of the `games` table. Mirrors supabase/schema.sql exactly. */
 export interface Game {
   id: string
@@ -7,6 +24,8 @@ export interface Game {
 
   title: string
   genre: string | null
+  /** The shelf category. Null means the game shows only under "All work". */
+  category_id: string | null
   studio: string | null
   year: number | null
   my_role: string | null
@@ -35,6 +54,7 @@ export function emptyGame(sortOrder: number): GameDraft {
     slug: '',
     title: '',
     genre: '',
+    category_id: null,
     studio: '',
     year: new Date().getFullYear(),
     my_role: '',

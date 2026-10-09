@@ -3,16 +3,18 @@ import { Link } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { supabase, ADMIN_EMAIL, isConfigured } from '../lib/supabase'
 import { useAllGames } from '../lib/useGames'
+import { useCategories } from '../lib/useCategories'
 import { slugify } from '../lib/types'
 import type { Game } from '../lib/types'
 import Login from './Login'
 import GameEditor from './GameEditor'
 import ProfileEditor from './ProfileEditor'
 import ExperienceEditor from './ExperienceEditor'
+import CategoryEditor from './CategoryEditor'
 import { useProfile } from '../lib/useProfile'
 import '../styles/admin.css'
 
-type Section = 'games' | 'profile' | 'experience'
+type Section = 'games' | 'categories' | 'profile' | 'experience'
 
 function SetupNotice() {
   return (
@@ -32,12 +34,14 @@ function SetupNotice() {
 
 function GamesTable({
   games,
+  categoryLabel,
   selectedId,
   onSelect,
   onReorder,
   onTogglePublished,
 }: {
   games: Game[]
+  categoryLabel: (id: string | null) => string | null
   selectedId: string | null
   onSelect: (g: Game) => void
   onReorder: (index: number, direction: -1 | 1) => void
@@ -78,7 +82,8 @@ function GamesTable({
               {g.featured ? ' ★' : ''}
             </span>
             <span className="row__s">
-              {[g.genre, g.studio].filter(Boolean).join(' · ') || 'No details yet'}
+              {[categoryLabel(g.category_id) ?? g.genre, g.studio].filter(Boolean).join(' · ') ||
+                'No details yet'}
             </span>
           </button>
 
@@ -148,7 +153,11 @@ export default function AdminApp() {
 
 function Dashboard({ email }: { email: string }) {
   const { games, loading, error, refresh, setGames } = useAllGames()
+  const cats = useCategories()
   const prof = useProfile()
+
+  const categoryLabel = (id: string | null) =>
+    id ? cats.categories.find((c) => c.id === id)?.label ?? null : null
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [section, setSection] = useState<Section>('games')
@@ -269,6 +278,13 @@ function Dashboard({ email }: { email: string }) {
             Games
           </button>
           <button
+            className={`sidelink${section === 'categories' ? ' on' : ''}`}
+            onClick={() => setSection('categories')}
+          >
+            <span className="dotk" />
+            Categories
+          </button>
+          <button
             className={`sidelink${section === 'profile' ? ' on' : ''}`}
             onClick={() => setSection('profile')}
           >
@@ -308,6 +324,7 @@ function Dashboard({ email }: { email: string }) {
 
               <GamesTable
                 games={games}
+                categoryLabel={categoryLabel}
                 selectedId={selectedId}
                 onSelect={(g) => setSelectedId(g.id)}
                 onReorder={reorder}
@@ -316,6 +333,7 @@ function Dashboard({ email }: { email: string }) {
 
               <GameEditor
                 game={selected}
+                categories={cats.categories}
                 onSaved={refresh}
                 onDeleted={() => {
                   setSelectedId(null)
@@ -323,6 +341,17 @@ function Dashboard({ email }: { email: string }) {
                 }}
               />
             </>
+          )}
+
+          {section === 'categories' && (
+            <CategoryEditor
+              categories={cats.categories}
+              games={games}
+              onChanged={() => {
+                void cats.refresh()
+                void refresh()
+              }}
+            />
           )}
 
           {section === 'profile' && (

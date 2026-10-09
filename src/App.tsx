@@ -3,6 +3,7 @@ import { TopBar, Hero, Experience, Footer } from './components/SiteChrome'
 import Shelf from './components/Shelf'
 import AdminApp from './admin/AdminApp'
 import { usePublishedGames } from './lib/useGames'
+import { useCategories } from './lib/useCategories'
 import { useProfile } from './lib/useProfile'
 import type { ProfileState } from './lib/useProfile'
 
@@ -24,6 +25,7 @@ function SetupNotice() {
 
 function Site({ prof }: { prof: ProfileState }) {
   const { games, loading, error } = usePublishedGames()
+  const { categories } = useCategories()
 
   return (
     <>
@@ -37,7 +39,7 @@ function Site({ prof }: { prof: ProfileState }) {
           </div>
         </div>
       )}
-      <Shelf games={games} loading={loading} />
+      <Shelf games={games} categories={categories} loading={loading} />
       <Experience rows={prof.experience} />
       <Footer data={prof.profile} />
     </>

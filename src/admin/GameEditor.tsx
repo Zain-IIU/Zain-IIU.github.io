@@ -3,11 +3,13 @@ import type { ChangeEvent } from 'react'
 import PhoneFrame from '../components/PhoneFrame'
 import { supabase } from '../lib/supabase'
 import { slugify } from '../lib/types'
-import type { Game, GameDraft, GameStatus } from '../lib/types'
+import type { Category, Game, GameDraft, GameStatus } from '../lib/types'
 import { uploadCapture, prettyBytes } from './upload'
 
 interface Props {
   game: Game | null
+  /** The managed category list, for the picker. */
+  categories: Category[]
   /** Called after a successful save or delete so the table reloads. */
   onSaved: () => void
   onDeleted: () => void
@@ -15,7 +17,7 @@ interface Props {
 
 type Status = { kind: 'idle' | 'busy' | 'ok' | 'bad'; text: string }
 
-export default function GameEditor({ game, onSaved, onDeleted }: Props) {
+export default function GameEditor({ game, categories, onSaved, onDeleted }: Props) {
   const [draft, setDraft] = useState<GameDraft>({})
   const [status, setStatus] = useState<Status>({ kind: 'idle', text: '' })
 
@@ -26,6 +28,7 @@ export default function GameEditor({ game, onSaved, onDeleted }: Props) {
       slug: game.slug,
       title: game.title,
       genre: game.genre ?? '',
+      category_id: game.category_id ?? null,
       studio: game.studio ?? '',
       year: game.year ?? undefined,
       my_role: game.my_role ?? '',
@@ -97,6 +100,7 @@ export default function GameEditor({ game, onSaved, onDeleted }: Props) {
       slug: draft.slug?.trim() || slugify(draft.title),
       title: draft.title.trim(),
       genre: nullIfBlank(draft.genre),
+      category_id: draft.category_id ?? null,
       studio: nullIfBlank(draft.studio),
       year: draft.year ? Number(draft.year) : null,
       my_role: nullIfBlank(draft.my_role),
@@ -175,7 +179,23 @@ export default function GameEditor({ game, onSaved, onDeleted }: Props) {
             </div>
 
             <div className="f">
-              <label htmlFor="ed-genre">Genre</label>
+              <label htmlFor="ed-category">Category &mdash; the shelf filter</label>
+              <select
+                id="ed-category"
+                value={draft.category_id ?? ''}
+                onChange={(e) => set('category_id', e.target.value || null)}
+              >
+                <option value="">No category</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="f">
+              <label htmlFor="ed-genre">Genre &mdash; free text, shown if no category</label>
               <input
                 id="ed-genre"
                 value={draft.genre ?? ''}
