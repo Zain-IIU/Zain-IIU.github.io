@@ -64,6 +64,10 @@ export interface Profile {
   github_url: string | null
   linkedin_url: string | null
   photo_url: string | null
+  /** Hero portrait framing. Applied in CSS; the uploaded file is never re-cut. */
+  photo_zoom: number
+  photo_x: number
+  photo_y: number
   cv_url: string | null
   updated_at: string
 }

@@ -195,10 +195,22 @@ export function Hero({ data }: { data: Profile | null }) {
           </div>
         </div>
 
-        {/* No photo uploaded yet: drop the panel rather than show an empty box. */}
+        {/* No photo uploaded yet: drop the panel rather than show an empty box.
+            Framing comes from the profile row, so the file itself is untouched. */}
         {p?.photo_url && (
           <figure className="hero__photo">
-            <img src={p.photo_url} alt={p.name} loading="eager" decoding="async" />
+            <div className="hero__photo__clip">
+              <img
+                src={p.photo_url}
+                alt={p.name}
+                loading="eager"
+                decoding="async"
+                style={{
+                  objectPosition: `${p.photo_x ?? 50}% ${p.photo_y ?? 50}%`,
+                  transform: `scale(${p.photo_zoom ?? 1})`,
+                }}
+              />
+            </div>
           </figure>
         )}
       </div>
